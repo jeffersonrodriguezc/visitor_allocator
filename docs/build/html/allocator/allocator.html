@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+
+<html lang="es" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Algoritmo de asignación &#8212; documentación de Visitor allocator - 1.0.0</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=4f649999" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=039e1c02" />
+    <script src="../_static/documentation_options.js?v=36c4ab74"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/translations.js?v=efdbd0b9"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Índice" href="../genindex.html" />
+    <link rel="search" title="Búsqueda" href="../search.html" />
+    <link rel="next" title="Interfaz de usuario" href="../gui/app_gui.html" />
+    <link rel="prev" title="Análisis de variables" href="../analysis/variable_analysis.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="algoritmo-de-asignacion">
+<h1>Algoritmo de asignación<a class="headerlink" href="#algoritmo-de-asignacion" title="Link to this heading">¶</a></h1>
+<section id="descripcion-general">
+<h2>Descripción General<a class="headerlink" href="#descripcion-general" title="Link to this heading">¶</a></h2>
+<p>El módulo <code class="docutils literal notranslate"><span class="pre">allocator.py</span></code> implementa un algoritmo de asignación diseñado para distribuir un número máximo de visitas entre
+varios clientes, basándose en el score de prioridad asociado a cada cliente.</p>
+</section>
+<section id="aplicacion-de-reglas-predefinidas-para-asignacion-de-visitas">
+<h2>Aplicación de Reglas Predefinidas para Asignación de Visitas<a class="headerlink" href="#aplicacion-de-reglas-predefinidas-para-asignacion-de-visitas" title="Link to this heading">¶</a></h2>
+<p>Al inicio del proceso de asignación, el algoritmo aplica una serie de reglas predefinidas que determinan el número de visitas
+a asignar a ciertos clientes basándose en criterios específicos. Estas reglas tienen como objetivo garantizar que los clientes
+más relevantes o aquellos que requieren atención especial reciban un número adecuado de visitas,
+según lo definido por el usuario a través de la interfaz.</p>
+</section>
+<section id="reglas-de-asignacion-basadas-en-importancia-y-coberturas">
+<h2>Reglas de Asignación Basadas en Importancia y Coberturas<a class="headerlink" href="#reglas-de-asignacion-basadas-en-importancia-y-coberturas" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><strong>Reglas de Importancia:</strong> Se asigna un número fijo de visitas a los clientes que representan un porcentaje ((X%)) específico del volumen total o revenue, identificando así a los clientes más importantes. Esto asegura que los recursos se concentren en mantener y potenciar las relaciones con los contribuyentes clave al éxito del negocio.</p></li>
+<li><p><strong>Reglas de Coberturas:</strong> Para clientes que no han realizado compras en una cantidad definida de meses, el algoritmo asigna visitas con el fin de reactivar su interacción y compra. Esta regla busca garantizar una cobertura mínima y mantener la base de clientes activa.</p></li>
+</ul>
+<p>Esta fase inicial del proceso de asignación destaca la importancia de priorizar estratégicamente el enfoque de las visitas,
+asegurando que los clientes clave reciban la atención necesaria, al tiempo que se mantiene una base de clientes activa y comprometida.</p>
+<p>Nota: Mientras se aplican las reglas se hacen validaciones para evaluar si el número máximo de visitas son suficientes para cubrir
+todos los clientes que cumplen las reglas. Una vez asignada las visitas el algoritmo actualiza la cantidad máxima de visitas y
+continua con la lógica de asignación la cual  incluye los siguientes elementos:</p>
+<p>La estrategia de asignación de visitas a clientes se fundamenta en dos principios esenciales, detallados a continuación:</p>
+</section>
+<section id="formacion-de-grupos-y-asignacion-de-visitas">
+<h2>Formación de Grupos y Asignación de Visitas<a class="headerlink" href="#formacion-de-grupos-y-asignacion-de-visitas" title="Link to this heading">¶</a></h2>
+<p>Se establecen inicialmente cuatro grupos numerados del 1 al 4.
+A cada cliente se le asigna un número de visitas al mes (v) que corresponde al número de su grupo,
+definido matemáticamente como:</p>
+<div class="math notranslate nohighlight">
+\[v_i = g_i\]</div>
+<p>donde (v_i) es el número de visitas asignadas al cliente (i), y (g_i) es el grupo al que ha sido asignado el cliente (i).</p>
+</section>
+<section id="determinacion-de-grupos-mediante-percentiles">
+<h2>Determinación de Grupos mediante Percentiles<a class="headerlink" href="#determinacion-de-grupos-mediante-percentiles" title="Link to this heading">¶</a></h2>
+<p>Los clientes se ordenan según su puntuación de prioridad (s) y se dividen inicialmente en grupos utilizando percentiles.
+La asignación en grupos se realiza de la siguiente manera:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}g_i =
+\begin{cases}
+1 &amp; \text{si } s_i \leq P_{25} \\
+2 &amp; \text{si } P_{25} &lt; s_i \leq P_{50} \\
+3 &amp; \text{si } P_{50} &lt; s_i \leq P_{75} \\
+4 &amp; \text{si } s_i &gt; P_{75}
+\end{cases}\end{split}\]</div>
+<p>donde (s_i) es la puntuación de prioridad del cliente (i), y (P_{25}), (P_{50}), (P_{75}) son los percentiles 25, 50 y 75, respectivamente, del conjunto total de puntuaciones.</p>
+<p>Nota: La metodología permite ajustar el número de grupos modificando los rangos de percentiles, ofreciendo flexibilidad
+para adaptarse a diferentes estrategias o limitaciones operativas. Por ejemplo, para crear dos grupos,
+se utilizarían los percentiles 50% y 100%, enfocando la división en torno a la mediana de las puntuaciones.
+Este enfoque matemático garantiza que la asignación inicial de visitas refleje las prioridades establecidas por las puntuaciones
+de los clientes, permitiendo ajustes en la cantidad de grupos según sea necesario. Sin embargo, estos grupos son consecutivos y
+para definir el numero de visitas de cada grupo se deberá realizar una modificación a la interfaz o ingresar manualmente estas
+asignaciones en el código.</p>
+</section>
+<section id="optimizacion-de-las-asignaciones-de-visitas">
+<h2>Optimización de las Asignaciones de Visitas<a class="headerlink" href="#optimizacion-de-las-asignaciones-de-visitas" title="Link to this heading">¶</a></h2>
+<p>Una vez asignadas las visitas por grupos, es probable que el total de visitas asignadas exceda el número máximo de visitas
+disponibles, especificado por el usuario. Para abordar este desafío, el algoritmo entra en una fase de iteración diseñada
+para ajustar dinámicamente las asignaciones iniciales al límite de visitas máximas.</p>
+</section>
+<section id="proceso-de-reduccion-de-visitas">
+<h2>Proceso de Reducción de Visitas<a class="headerlink" href="#proceso-de-reduccion-de-visitas" title="Link to this heading">¶</a></h2>
+<p>El objetivo es calcular, de manera aproximada, cuántas visitas se deben redistribuir desde cada grupo para no superar
+el total de visitas máximas permitidas. Este cálculo se basa en la proporción de visitas excedentes en relación al total de visitas
+inicialmente asignadas, aplicando la siguiente fórmula matemática:</p>
+<div class="math notranslate nohighlight">
+\[v_{\text{mover}, g} = v_{g} \times \left( \frac{v_{\text{excedentes}}}{v_{\text{total, inicial}}} \right)\]</div>
+<p>donde:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(v_{\text{mover}, g}\)</span> es el número de visitas a redistribuir para el grupo (g).</p></li>
+<li><p><span class="math notranslate nohighlight">\(v_{g}\)</span> es el total de visitas asignadas al grupo (g).</p></li>
+<li><p><span class="math notranslate nohighlight">\(v_{\text{excedentes}}\)</span> es el total de visitas que exceden el límite máximo permitido.</p></li>
+<li><p><span class="math notranslate nohighlight">\(v_{\text{total, inicial}}\)</span> es el total de visitas inicialmente asignadas a todos los grupos.</p></li>
+</ul>
+</section>
+<section id="redistribucion-equilibrada">
+<h2>Redistribución Equilibrada<a class="headerlink" href="#redistribucion-equilibrada" title="Link to this heading">¶</a></h2>
+<p>Para garantizar una redistribución equilibrada y evitar concentrar la reducción en un solo grupo, el algoritmo recalcula
+en cada iteración cuántos clientes deben ser movidos de un grupo a otro. Específicamente, se mueven clientes del grupo 4 al 3,
+del 3 al 2, y del 2 al 1, teniendo en cuenta el número de visitas a mover por grupo derivado de la fórmula anterior.</p>
+</section>
+<section id="criterio-de-seleccion-de-clientes">
+<h2>Criterio de Selección de Clientes<a class="headerlink" href="#criterio-de-seleccion-de-clientes" title="Link to this heading">¶</a></h2>
+<p>Priorizando una optimización justa, se seleccionan primero para mover aquellos clientes que están cerca del límite inferior
+de su grupo actual, según el ordenamiento basado en el score de prioridad. Esta estrategia asegura que los ajustes
+se centren en los clientes cuya reasignación al grupo inmediatamente inferior impactará mínimamente en la distribución
+general de las prioridades.</p>
+<p>Este enfoque iterativo y matemáticamente fundamentado permite al algoritmo ajustar de manera efectiva y equitativa las asignaciones
+de visitas a la capacidad máxima disponible, respetando al mismo tiempo la estructura de prioridades establecida inicialmente.</p>
+</section>
+<section id="distribucion-de-visitas-en-caso-de-excedente">
+<h2>Distribución de Visitas en Caso de Excedente<a class="headerlink" href="#distribucion-de-visitas-en-caso-de-excedente" title="Link to this heading">¶</a></h2>
+<p>En la situación donde el total de visitas disponibles supera la suma de visitas inicialmente asignadas a los clientes,
+el algoritmo implementa una estrategia para distribuir el excedente de manera equitativa entre los grupos 1, 2 y 3.
+Este proceso asegura un uso óptimo de los recursos adicionales, maximizando el alcance y la efectividad de las visitas sin
+sobrepasar el límite máximo de capacidad.</p>
+<div class="math notranslate nohighlight">
+\[v_{\text{adicional}} = \frac{v_{\text{disponibles}} - v_{\text{total, asignadas}}}{3}\]</div>
+<p>donde:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(v_{\text{adicional}}\)</span> representa el número de visitas adicionales que se distribuirán por grupo.</p></li>
+<li><p><span class="math notranslate nohighlight">\(v_{\text{disponibles}}\)</span> es el total de visitas disponibles tras considerar las asignaciones iniciales y las reglas aplicadas.</p></li>
+<li><p><span class="math notranslate nohighlight">\(v_{\text{total, asignadas}}\)</span> es el número total de visitas ya asignadas a todos los grupos.</p></li>
+</ul>
+</section>
+<section id="procedimiento-de-distribucion-equitativa">
+<h2>Procedimiento de Distribución Equitativa<a class="headerlink" href="#procedimiento-de-distribucion-equitativa" title="Link to this heading">¶</a></h2>
+<p>Las visitas adicionales se reparten de manera que cada uno de los grupos 1, 2 y 3 reciba una cantidad igual de estas visitas extra.
+Se seleccionan los clientes más cercanos al límite superior de cada grupo, basándose en su puntuación de prioridad,
+para recibir las visitas adicionales. Esta metodología no solo promueve una distribución justa de los recursos,
+sino que también refuerza la estrategia de maximizar el impacto de las visitas concentrándose en aquellos clientes con mayor
+potencial según su clasificación de prioridad.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Visitor allocator</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navegación</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../general_information.html">Información general</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../analysis/variable_analysis.html">Análisis de variables</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Algoritmo de asignación</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#descripcion-general">Descripción General</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#aplicacion-de-reglas-predefinidas-para-asignacion-de-visitas">Aplicación de Reglas Predefinidas para Asignación de Visitas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#reglas-de-asignacion-basadas-en-importancia-y-coberturas">Reglas de Asignación Basadas en Importancia y Coberturas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#formacion-de-grupos-y-asignacion-de-visitas">Formación de Grupos y Asignación de Visitas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#determinacion-de-grupos-mediante-percentiles">Determinación de Grupos mediante Percentiles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#optimizacion-de-las-asignaciones-de-visitas">Optimización de las Asignaciones de Visitas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#proceso-de-reduccion-de-visitas">Proceso de Reducción de Visitas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#redistribucion-equilibrada">Redistribución Equilibrada</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#criterio-de-seleccion-de-clientes">Criterio de Selección de Clientes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#distribucion-de-visitas-en-caso-de-excedente">Distribución de Visitas en Caso de Excedente</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#procedimiento-de-distribucion-equitativa">Procedimiento de Distribución Equitativa</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../gui/app_gui.html">Interfaz de usuario</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../compilation_instructions.html">Instrucciones de Compilación</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="../analysis/variable_analysis.html" title="capítulo anterior">Análisis de variables</a></li>
+      <li>Next: <a href="../gui/app_gui.html" title="próximo capítulo">Interfaz de usuario</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Búsqueda rápida</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Ir a" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2024, Orusexpert.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="../_sources/allocator/allocator.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
