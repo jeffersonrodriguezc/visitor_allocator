@@ -257,11 +257,13 @@ o segmentos de clientes con mayor potencial de impacto en el rendimiento global 
    Debido a que la variable Mix Premium es de la misma naturaleza que la variable Portafolio, se le aplica exactamente el mismo
    análisis descrito en la variable Portafolio.
 
+   .. note:: Los cluster altos en mix Premium son los que tienen mas del 75%
+
    Todo el análisis puede ser consultado en la función llamada:
 
    .. function:: analysis.utils.analysis_mixpremium_ratio(data, product, max_year, min_year, max_month)
       
-      Este análisis está diseñado para ayudar a analizar las tendencias del Market Share de un producto específico a lo largo del tiempo, 
+      Este análisis está diseñado para ayudar a analizar las tendencias de Mix Premium de un producto específico a lo largo del tiempo, 
       comparando los datos entre dos años diferentes.
 
       El score de prioridad final se calcula mediante el promedio del score de georreferenciación y el score de análisis temporal.
